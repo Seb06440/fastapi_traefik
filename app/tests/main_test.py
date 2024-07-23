@@ -7,22 +7,19 @@ os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 from app.db import User
 from app.main import app
 
-def pytest_configure():
-    pytest.id_user = None
-
-@pytest.fixture(scope='function')
-async def setup():
-    await app.router.startup()
-    yield
-    await app.router.shutdown()
+# @pytest.fixture(scope='function')
+# async def setup():
+#     await app.router.startup()
+#     yield
+#     await app.router.shutdown()
 
 @pytest.mark.asyncio
-async def test_read_root(setup):
+async def test_read_root():
     
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        # await app.router.startup()
+        await app.router.startup()
         response = await ac.get("/")
-        # await app.router.shutdown()
+        await app.router.shutdown()
     assert response.status_code == 200
     users = response.json()
     assert any(user["email"] == "test@test.com" for user in users), 'user not found'
@@ -33,7 +30,7 @@ async def createUser(user):
         return await client.post("/users/", json=user)
     
 @pytest.mark.asyncio
-async def test_create_user(setup):
+async def test_create_user():
     response = await createUser({"email": "newuser@test.com", "active": True})
     assert response.status_code == 200
     data = response.json()
